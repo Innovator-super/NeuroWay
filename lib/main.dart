@@ -85,13 +85,13 @@ class StimulusResult {
   });
 }
 
-// Follow and Remember exercise
+
 class FollowRememberExercise extends StatefulWidget {
   @override
   _FollowRememberExerciseState createState() => _FollowRememberExerciseState();
 }
 
-// Вспомогательные типы
+
 class _Sample {
   final Offset pos;
   final List<Offset> centerLine;
@@ -153,7 +153,7 @@ class _FollowPainter extends CustomPainter {
 }
 
 class _FollowRememberExerciseState extends State<FollowRememberExercise> {
-  int motorLevel = 1; // 1..3
+  int motorLevel = 1;
   double pathWidth = 80.0;
 
   bool tracking = false;
@@ -162,8 +162,8 @@ class _FollowRememberExerciseState extends State<FollowRememberExercise> {
   List<_SessionSummary> sessionSummaries = [];
   final GlobalKey _paintKey = GlobalKey();
 
-  // images
-  int imageLevel = 1; // 1..4
+
+  int imageLevel = 1;
   final List<String> items = ['A', 'B', 'C', 'D', 'E'];
   List<String> sequence = [];
   int revealIndex = 0;
@@ -437,7 +437,6 @@ class _TransitionResult {
   _TransitionResult(this.shouldAdvance, this.reason);
 }
 
-// Choice + Movement exercise
 class ChoiceMovementExercise extends StatefulWidget {
   @override
   _ChoiceMovementExerciseState createState() => _ChoiceMovementExerciseState();
@@ -584,17 +583,14 @@ class _ChoiceMovementExerciseState extends State<ChoiceMovementExercise> {
     final cfg = levels[currentLevelIndex];
 
     if (stimuliShown >= cfg.minSessionStimuli) {
-      // evaluate criteria on the last cfg.minSessionStimuli responses and maybe advance
       final transition = _evaluateTransition(cfg);
       if (transition.shouldAdvance) {
         if (currentLevelIndex < levels.length - 1) {
           currentLevelIndex++;
-          // reset for next level
           startSession();
           return;
         }
       }
-      // do not stop session automatically; continue showing stimuli
     }
 
 
@@ -604,7 +600,6 @@ class _ChoiceMovementExerciseState extends State<ChoiceMovementExercise> {
   _TransitionResult _evaluateTransition(LevelConfig cfg) {
     if (results.isEmpty) return _TransitionResult(false, 'Нет данных');
 
-    // use only last N results for transition decision
     final n = cfg.minSessionStimuli;
     final window = results.length <= n ? List<StimulusResult>.from(results) : results.sublist(results.length - n);
 
@@ -621,7 +616,7 @@ class _ChoiceMovementExerciseState extends State<ChoiceMovementExercise> {
     final starRTs = window.where((r) => r.type == StimulusType.star).map((r) => r.reactionTime).toList();
     final meanStarRT = starRTs.isEmpty ? 0.0 : (starRTs.reduce((a, b) => a + b) / starRTs.length);
 
-    // mean time first 5 vs second 5 (if have at least 10 in window)
+
     double meanFirst5 = 0.0, meanSecond5 = 0.0;
     if (window.length >= 10) {
       final first5 = window.take(5).map((r) => r.reactionTime).toList();
@@ -630,7 +625,7 @@ class _ChoiceMovementExerciseState extends State<ChoiceMovementExercise> {
       meanSecond5 = second5.reduce((a, b) => a + b) / second5.length;
     }
 
-    // series errors on inversion within window
+
     int maxConsecutiveInvErrors = 0;
     int currentStreak = 0;
     for (var r in window.where((r) => r.type == StimulusType.star || r.wasInversion)) {
