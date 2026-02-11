@@ -584,20 +584,17 @@ class _ChoiceMovementExerciseState extends State<ChoiceMovementExercise> {
     final cfg = levels[currentLevelIndex];
 
     if (stimuliShown >= cfg.minSessionStimuli) {
-      
+      // evaluate criteria on the last cfg.minSessionStimuli responses and maybe advance
       final transition = _evaluateTransition(cfg);
       if (transition.shouldAdvance) {
-        
         if (currentLevelIndex < levels.length - 1) {
           currentLevelIndex++;
+          // reset for next level
           startSession();
           return;
         }
       }
-
-
-      stopSession();
-      return;
+      // do not stop session automatically; continue showing stimuli
     }
 
 
@@ -607,32 +604,36 @@ class _ChoiceMovementExerciseState extends State<ChoiceMovementExercise> {
   _TransitionResult _evaluateTransition(LevelConfig cfg) {
     if (results.isEmpty) return _TransitionResult(false, 'Нет данных');
 
-    final total = results.length;
-    final correctCount = results.where((r) => r.correct).length;
+    // use only last N results for transition decision
+    final n = cfg.minSessionStimuli;
+    final window = results.length <= n ? List<StimulusResult>.from(results) : results.sublist(results.length - n);
+
+    final total = window.length;
+    final correctCount = window.where((r) => r.correct).length;
     final overallAcc = correctCount / total;
 
-    final inversionResults = results.where((r) => r.wasInversion || r.type == StimulusType.star).toList();
+    final inversionResults = window.where((r) => r.wasInversion || r.type == StimulusType.star).toList();
     final inversionCount = inversionResults.length;
     final inversionAcc = inversionCount == 0 ? 1.0 : (inversionResults.where((r) => r.correct).length / inversionCount);
 
-    final maxRT = results.map((r) => r.reactionTime).fold<double>(0.0, (p, e) => max(p, e));
+    final maxRT = window.map((r) => r.reactionTime).fold<double>(0.0, (p, e) => max(p, e));
 
-    final starRTs = results.where((r) => r.type == StimulusType.star).map((r) => r.reactionTime).toList();
+    final starRTs = window.where((r) => r.type == StimulusType.star).map((r) => r.reactionTime).toList();
     final meanStarRT = starRTs.isEmpty ? 0.0 : (starRTs.reduce((a, b) => a + b) / starRTs.length);
 
-
+    // mean time first 5 vs second 5 (if have at least 10 in window)
     double meanFirst5 = 0.0, meanSecond5 = 0.0;
-    if (results.length >= 10) {
-      final first5 = results.take(5).map((r) => r.reactionTime).toList();
-      final second5 = results.skip(5).take(5).map((r) => r.reactionTime).toList();
+    if (window.length >= 10) {
+      final first5 = window.take(5).map((r) => r.reactionTime).toList();
+      final second5 = window.skip(5).take(5).map((r) => r.reactionTime).toList();
       meanFirst5 = first5.reduce((a, b) => a + b) / first5.length;
       meanSecond5 = second5.reduce((a, b) => a + b) / second5.length;
     }
 
-
+    // series errors on inversion within window
     int maxConsecutiveInvErrors = 0;
     int currentStreak = 0;
-    for (var r in results.where((r) => r.type == StimulusType.star || r.wasInversion)) {
+    for (var r in window.where((r) => r.type == StimulusType.star || r.wasInversion)) {
       if (!r.correct) {
         currentStreak++;
         if (currentStreak > maxConsecutiveInvErrors) maxConsecutiveInvErrors = currentStreak;
