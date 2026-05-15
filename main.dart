@@ -789,10 +789,19 @@ class _ChoiceMovementExerciseState extends State<ChoiceMovementExercise> {
       return Container(width: 150, height: 150, decoration: BoxDecoration(color: Colors.blue, shape: BoxShape.circle));
     }
 
-    return Container(
-      height: 150,
+    return Stack(
       alignment: Alignment.center,
-      child: Icon(Icons.star, size: 100, color: Colors.yellow[700]),
+      children: [
+        if (currentUnderlyingStimulus == StimulusType.red)
+          Container(width: 150, height: 150, decoration: BoxDecoration(color: Colors.red, shape: BoxShape.circle))
+        else if (currentUnderlyingStimulus == StimulusType.blue)
+          Container(width: 150, height: 150, decoration: BoxDecoration(color: Colors.blue, shape: BoxShape.circle)),
+        SizedBox(
+          height: 150,
+          width: 150,
+          child: Center(child: Icon(Icons.star, size: 100, color: Colors.yellow[700])),
+        ),
+      ],
     );
   }
 
