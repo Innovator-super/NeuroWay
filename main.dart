@@ -866,28 +866,6 @@ class _ChoiceMovementExerciseState extends State<ChoiceMovementExercise> {
                 onPressed: running ? stopSession : null,
                 child: Text('Стоп'),
               ),
-              ElevatedButton(
-                onPressed: () {
-                  setState(() {
-                    results.clear();
-                    stimuliShown = 0;
-                    currentStimulus = null;
-                    currentIsInversion = false;
-                  });
-                },
-                child: Text('Сброс результатов'),
-              ),
-              ElevatedButton(
-                onPressed: () {
-                  setState(() {
-                    currentLevelIndex = (currentLevelIndex + 1) % levels.length;
-                    results.clear();
-                    stimuliShown = 0;
-                    currentStimulus = null;
-                  });
-                },
-                child: Text('Переключить уровень'),
-              ),
             ]),
             SizedBox(height: 12),
             Expanded(
