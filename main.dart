@@ -28,20 +28,20 @@ class MainScreen extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             ElevatedButton(
-              child: Text('Выбор + движение'),
+              child: Text('Реакция с инверсией правил'),
               onPressed: () => Navigator.of(context).push(
                 MaterialPageRoute(builder: (_) => ChoiceMovementExercise()),
               ),
             ),
             SizedBox(height: 12),
             ElevatedButton(
-              child: Text('Следуй и запоминай'),
+              child: Text('Координация и обновление памяти'),
               onPressed: () => Navigator.of(context).push(
                 MaterialPageRoute(builder: (_) => FollowRememberExercise()),
               ),
             ),
             SizedBox(height: 16),
-            Text('Доступные упражнения: 1) Выбор + движение  2) Следуй и запоминай'),
+            Text('Доступные упражнения: 1) Реакция с инверсией правил  2) Координация и обновление памяти'),
           ],
         ),
       ),
@@ -263,10 +263,12 @@ class _FollowRememberExerciseState extends State<FollowRememberExercise> {
     final parts = <String>[];
     for (int i = 0; i < target.length; i++) {
       final sel = i < selections.length ? selections[i].value : '-';
-      parts.add('${target[i]} <- $sel ${sel == target[i] ? '✔' : '✖'}');
+      parts.add('Предмет ${i + 1}: ${sel == target[i] ? '✅ Верно' : '❌ Ошибка (было ${target[i]}, вы выбрали $sel)'}');
     }
-    final fb = 'Результат: ${parts.join(', ')} • Точность: ${(acc * 100).toStringAsFixed(0)}% • RT: ${meanRt.toStringAsFixed(2)}s';
-    showDialog(context: context, builder: (_) => AlertDialog(title: Text('Результат'), content: Text(fb), actions: [TextButton(onPressed: () => Navigator.pop(context), child: Text('OK'))]));
+    final fb = 'Общий результат:\n\n${parts.join('\n')}\n\n'
+        'Точность: ${(acc * 100).toStringAsFixed(0)}%\n'
+        'Среднее время ответа: ${meanRt.toStringAsFixed(2)} сек';
+    showDialog(context: context, builder: (_) => AlertDialog(title: Text('Результат упражнения'), content: Text(fb), actions: [TextButton(onPressed: () => Navigator.pop(context), child: Text('OK'))]));
   }
 
   void startTracking() {
@@ -373,20 +375,73 @@ class _FollowRememberExerciseState extends State<FollowRememberExercise> {
     }
   }
 
+  String _getImageLevelDescription() {
+    if (imageLevel == 1) return 'Выберите 1 последний предмет';
+    if (imageLevel == 2) return 'Выберите 2 последних предмета';
+    if (imageLevel == 3) return 'Выберите 3 последних предмета';
+    if (imageLevel == 4) return 'Выберите 2 последних предмета в обратном порядке';
+    return '';
+  }
+
+  void _showMotorInstructions() {
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: Text('Инструкция: Координация и обновление памяти'),
+        content: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Комплексная тренировка: координация рук и зрительная память одновременно.'),
+              SizedBox(height: 12),
+              Text('📋 Как играть', style: TextStyle(fontWeight: FontWeight.bold)),
+              Text('Упражнение состоит из двух частей, которые происходят одновременно:\n\n'
+                  '• Дорожка: Внизу экрана появится линия. Поставьте на неё палец и ведите до конца, стараясь не выходить за границы.\n\n'
+                  '• Картинки: Пока ваш палец движется, в верхней части экрана будут мелькать 5 картинок. Просто постарайтесь их запомнить.\n\n'
+                  '• Проверка: Как только дорожка закончится, вам нужно будет указать картинки, которые вы видели последними.'),
+              SizedBox(height: 12),
+              Text('📈 Как работает уровень сложности', style: TextStyle(fontWeight: FontWeight.bold)),
+              Text('Приложение следит за вашей координацией и памятью. Сложность вырастет, если:\n\n'
+                  '• Ваш палец шел ровно по центру дорожки и почти не выходил за край.\n'
+                  '• Вы быстро и правильно вспомнили картинки (в среднем быстрее 2.5 секунд на ответ).\n\n'
+                  'Что изменится на новом уровне?\n\n'
+                  '• Дорожка станет более извилистой.\n'
+                  '• Картинки будут сменяться быстрее.\n'
+                  '• Нужно будет запомнить больше предметов или указать их в обратном порядке.'),
+            ],
+          ),
+        ),
+        actions: [TextButton(onPressed: () => Navigator.pop(context), child: Text('Понятно'))],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Следуй и запоминай')),
+      appBar: AppBar(
+        title: Text('Координация и обновление памяти'),
+        actions: [
+          IconButton(icon: Icon(Icons.help), onPressed: _showMotorInstructions),
+          Padding(
+            padding: const EdgeInsets.all(12.0),
+            child: Center(child: Text('Уровень дорожки: $motorLevel')),
+          )
+        ],
+      ),
       body: Column(
         children: [
           Padding(
             padding: const EdgeInsets.all(8.0),
             child: Row(children: [
-              // ElevatedButton(onPressed: startTracking, child: Text('Старт дорожки')),
-              // SizedBox(width: 8),
-              // ElevatedButton(onPressed: stopTracking, child: Text('Стоп дорожки')),
-              // SizedBox(width: 8),
-              Text('Уровень дорожки: $motorLevel'),
+              Text('Уровень картинок: $imageLevel'),
+              SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  _getImageLevelDescription(),
+                  style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                ),
+              ),
             ]),
           ),
           Expanded(
@@ -411,7 +466,6 @@ class _FollowRememberExerciseState extends State<FollowRememberExercise> {
             child: Row(children: [
               ElevatedButton(onPressed: playingImages ? null : playImageSequence, child: Text('Показать 5 картинок')),
               SizedBox(width: 12),
-              Text('Уровень картинок: $imageLevel'),
             ]),
           ),
           Container(
@@ -695,6 +749,37 @@ class _ChoiceMovementExerciseState extends State<ChoiceMovementExercise> {
     return 'Уровень ${levels[currentLevelIndex].levelNumber} • Стимулов: $total • Точность: ${(overallAcc * 100).toStringAsFixed(0)}% • RT: ${meanRT.toStringAsFixed(2)}s • Инверсия: ${(invAcc * 100).toStringAsFixed(0)}%';
   }
 
+  void _showInstructions() {
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: Text('Инструкция: Реакция с инверсией'),
+        content: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Это упражнение помогает мозгу быстро переключаться между задачами и тренирует быстроту реакции.'),
+              SizedBox(height: 12),
+              Text('📋 Как играть', style: TextStyle(fontWeight: FontWeight.bold)),
+              Text('Перед вами две кнопки: Левая и Правая.\n\n'
+                  '🔴 Красный круг — жмите СЛЕВА.\n'
+                  '🔵 Синий круг — жмите СПРАВА.\n'
+                  '⭐ Звёздочка — знак «Наоборот»! Если видите её, забудьте про правила выше: на красный жмите справа, на синий — слева.'),
+              SizedBox(height: 12),
+              Text('📈 Как работает уровень сложности', style: TextStyle(fontWeight: FontWeight.bold)),
+              Text('Ваш прогресс зависит не только от правильных нажатий, но и от вашей уверенности. Система предложит более сложный вариант, если вы:\n\n'
+                  '• Ошибаетесь редко (почти всегда выбираете верный цвет).\n'
+                  '• Действуете быстро (нажимаете на кнопку быстрее, чем за 1.5–2 секунды).\n'
+                  '• Сохраняете ритм (не замедляетесь к концу упражнения).\n\n'
+                  'Важно: Если вы начнете долго раздумывать или часто ошибаться, приложение предложит вернуться на шаг назад. Это нужно, чтобы мозг тренировался без переутомления.'),
+            ],
+          ),
+        ),
+        actions: [TextButton(onPressed: () => Navigator.pop(context), child: Text('Понятно'))],
+      ),
+    );
+  }
+
   Widget _buildStimulusWidget() {
     if (currentStimulus == null) return SizedBox(height: 150);
     if (currentStimulus == StimulusType.red) {
@@ -703,25 +788,11 @@ class _ChoiceMovementExerciseState extends State<ChoiceMovementExercise> {
     if (currentStimulus == StimulusType.blue) {
       return Container(width: 150, height: 150, decoration: BoxDecoration(color: Colors.blue, shape: BoxShape.circle));
     }
-    
+
     return Container(
       height: 150,
       alignment: Alignment.center,
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            width: 120,
-            height: 120,
-            decoration: BoxDecoration(
-              color: currentUnderlyingStimulus == StimulusType.red ? Colors.red : Colors.blue,
-              shape: BoxShape.circle,
-            ),
-          ),
-          SizedBox(width: 12),
-          Icon(Icons.star, size: 56, color: Colors.yellow[700]),
-        ],
-      ),
+      child: Icon(Icons.star, size: 100, color: Colors.yellow[700]),
     );
   }
 
@@ -732,6 +803,7 @@ class _ChoiceMovementExerciseState extends State<ChoiceMovementExercise> {
       appBar: AppBar(
         title: Text(cfg.name),
         actions: [
+          IconButton(icon: Icon(Icons.help), onPressed: _showInstructions),
           Padding(
             padding: const EdgeInsets.all(12.0),
             child: Center(child: Text('Уровень ${cfg.levelNumber}')),
